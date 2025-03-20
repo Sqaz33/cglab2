@@ -73,7 +73,7 @@ while running:
     pygame.draw.rect(screen, RED, (player_x * GRID_SIZE, player_y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
     
     # Отображение счетчика
-    text = font.render(f"Terms: {len(collected_terms)}/10", True, WHITE)
+    text = font.render(f"Terms: {len(collected_terms)}/{len(term_objects)}", True, WHITE)
     screen.blit(text, (WIDTH - 120, HEIGHT - 40))
     
     # Обработка событий
