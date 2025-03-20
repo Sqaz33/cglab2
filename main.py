@@ -5,7 +5,7 @@ import random
 pygame.init()
 
 # Константы
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 800, 360
 GRID_SIZE = 40
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
@@ -73,7 +73,7 @@ while running:
     pygame.draw.rect(screen, RED, (player_x * GRID_SIZE, player_y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
     
     # Отображение счетчика
-    text = font.render(f"Terms: {len(collected_terms)}/10", True, BLACK)
+    text = font.render(f"Terms: {len(collected_terms)}/10", True, WHITE)
     screen.blit(text, (WIDTH - 120, HEIGHT - 40))
     
     # Обработка событий
@@ -117,6 +117,6 @@ while running:
         pygame.display.flip()
         pygame.time.delay(2000)
         running = False
-    
     pygame.display.flip()
     pygame.time.delay(100)
+
