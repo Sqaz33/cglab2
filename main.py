@@ -14,18 +14,12 @@ BLACK = (0, 0, 0)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("The Maze of Terms")
 
-# Загрузка изображений и масштабирование
-wall_img = pygame.image.load("assets/wall.png")
-wall_img = pygame.transform.scale(wall_img, (GRID_SIZE, GRID_SIZE))
-
-earth_img = pygame.image.load("assets/earth.png")
-earth_img = pygame.transform.scale(earth_img, (GRID_SIZE, GRID_SIZE))
-
-player_img = pygame.image.load("assets/boy.png")
-player_img = pygame.transform.scale(player_img, (GRID_SIZE, GRID_SIZE))
-
-key_img = pygame.image.load("assets/key.png")
-key_img = pygame.transform.scale(key_img, (20, 20))  # термины — маленькие ключи
+# Загрузка изображений
+wall_img = pygame.transform.scale(pygame.image.load("assets/wall.png"), (GRID_SIZE, GRID_SIZE))
+earth_img = pygame.transform.scale(pygame.image.load("assets/earth.png"), (GRID_SIZE, GRID_SIZE))
+player_img = pygame.transform.scale(pygame.image.load("assets/boy.png"), (GRID_SIZE, GRID_SIZE))
+key_img = pygame.transform.scale(pygame.image.load("assets/key.png"), (20, 20))
+win_img = pygame.transform.scale(pygame.image.load("assets/win.png"), (WIDTH, HEIGHT))
 
 # Лабиринт
 maze = [
@@ -40,7 +34,7 @@ maze = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
-# Термины и определения
+# Термины
 terms = {
     "Stack": "LIFO структура данных",
     "Queue": "FIFO структура данных",
@@ -53,11 +47,8 @@ terms = {
     "Mutex": "Объект для синхронизации потоков",
     "Polymorphism": "Способность функции работать с разными типами"
 }
-term_keys = list(terms.keys())
-random.shuffle(term_keys)
-term_keys = term_keys[:10]
+term_keys = random.sample(list(terms.keys()), 10)
 
-# Генерация случайных позиций терминов
 def get_valid_position():
     while True:
         x, y = random.randint(1, 18), random.randint(1, 7)
@@ -70,71 +61,71 @@ term_positions = {term: get_valid_position() for term in term_keys}
 player_x, player_y = 1, 1
 collected_terms = []
 
-# Основной цикл игры
+# Основной цикл
 running = True
 font = pygame.font.Font(None, 24)
 showing_definition = None
+victory = False
 
 while running:
     screen.fill(BLACK)
 
-    # Отображение лабиринта с фоном
-    for y, row in enumerate(maze):
-        for x, cell in enumerate(row):
-            screen.blit(earth_img if cell == 0 else wall_img, (x * GRID_SIZE, y * GRID_SIZE))
+    if not victory:
+        # Отображение лабиринта
+        for y, row in enumerate(maze):
+            for x, cell in enumerate(row):
+                screen.blit(earth_img if cell == 0 else wall_img, (x * GRID_SIZE, y * GRID_SIZE))
 
-    # Отображение терминов (ключей)
-    for term, (tx, ty) in term_positions.items():
-        if term not in collected_terms:
-            screen.blit(key_img, (tx * GRID_SIZE + 10, ty * GRID_SIZE + 10))
+        # Термины
+        for term, (tx, ty) in term_positions.items():
+            if term not in collected_terms:
+                screen.blit(key_img, (tx * GRID_SIZE + 10, ty * GRID_SIZE + 10))
 
-    # Отображение игрока
-    screen.blit(player_img, (player_x * GRID_SIZE, player_y * GRID_SIZE))
+        # Игрок
+        screen.blit(player_img, (player_x * GRID_SIZE, player_y * GRID_SIZE))
 
-    # Отображение счетчика
-    text = font.render(f"Terms: {len(collected_terms)}/{len(term_positions)}", True, WHITE)
-    screen.blit(text, (WIDTH - 160, HEIGHT - 40))
+        # Счёт
+        text = font.render(f"Terms: {len(collected_terms)}/{len(term_positions)}", True, WHITE)
+        screen.blit(text, (WIDTH - 160, HEIGHT - 40))
 
-    # Обработка событий
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if showing_definition:
-                showing_definition = None
-            else:
-                dx, dy = 0, 0
-                if event.key == pygame.K_LEFT:
-                    dx = -1
-                elif event.key == pygame.K_RIGHT:
-                    dx = 1
-                elif event.key == pygame.K_UP:
-                    dy = -1
-                elif event.key == pygame.K_DOWN:
-                    dy = 1
+        # События
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if showing_definition:
+                    showing_definition = None
+                else:
+                    dx, dy = 0, 0
+                    if event.key == pygame.K_LEFT:
+                        dx = -1
+                    elif event.key == pygame.K_RIGHT:
+                        dx = 1
+                    elif event.key == pygame.K_UP:
+                        dy = -1
+                    elif event.key == pygame.K_DOWN:
+                        dy = 1
+                    if maze[player_y + dy][player_x + dx] == 0:
+                        player_x += dx
+                        player_y += dy
+                    for term, (tx, ty) in term_positions.items():
+                        if (tx, ty) == (player_x, player_y) and term not in collected_terms:
+                            collected_terms.append(term)
+                            showing_definition = f"{term}: {terms[term]}"
+        # Определение
+        if showing_definition:
+            pygame.draw.rect(screen, WHITE, (100, 250, 600, 50))
+            definition_text = font.render(showing_definition, True, BLACK)
+            screen.blit(definition_text, (110, 260))
 
-                if maze[player_y + dy][player_x + dx] == 0:
-                    player_x += dx
-                    player_y += dy
-
-                for term, (tx, ty) in term_positions.items():
-                    if (tx, ty) == (player_x, player_y) and term not in collected_terms:
-                        collected_terms.append(term)
-                        showing_definition = f"{term}: {terms[term]}"
-
-    # Отображение определения
-    if showing_definition:
-        pygame.draw.rect(screen, WHITE, (100, 250, 600, 50))
-        definition_text = font.render(showing_definition, True, BLACK)
-        screen.blit(definition_text, (110, 260))
-
-    # Победа
-    if len(collected_terms) == len(term_positions):
-        screen.fill(WHITE)
-        win_text = font.render("You collected all terms! Victory!", True, BLACK)
-        screen.blit(win_text, (WIDTH // 2 - 120, HEIGHT // 2))
+        # Победа
+        if len(collected_terms) == len(term_positions):
+            victory = True
+            pygame.time.delay(500)
+    else:
+        screen.blit(win_img, (0, 0))
         pygame.display.flip()
-        pygame.time.delay(3000)
+        pygame.time.delay(10000)
         running = False
 
     pygame.display.flip()
