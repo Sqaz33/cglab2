@@ -17,9 +17,23 @@ pygame.display.set_caption("The Maze of Terms")
 # Загрузка изображений
 wall_img = pygame.transform.scale(pygame.image.load("assets/wall.png"), (GRID_SIZE, GRID_SIZE))
 earth_img = pygame.transform.scale(pygame.image.load("assets/earth.png"), (GRID_SIZE, GRID_SIZE))
-player_img = pygame.transform.scale(pygame.image.load("assets/boy.png"), (GRID_SIZE, GRID_SIZE))
 key_img = pygame.transform.scale(pygame.image.load("assets/key.png"), (20, 20))
 win_img = pygame.transform.scale(pygame.image.load("assets/win.png"), (WIDTH, HEIGHT))
+
+# Загрузка анимации игрока
+player_sprites = {
+    "down": [pygame.transform.scale(pygame.image.load("assets/boy_down_1.png"), (GRID_SIZE, GRID_SIZE)),
+             pygame.transform.scale(pygame.image.load("assets/boy_down_2.png"), (GRID_SIZE, GRID_SIZE))],
+    "up": [pygame.transform.scale(pygame.image.load("assets/boy_up_1.png"), (GRID_SIZE, GRID_SIZE)),
+           pygame.transform.scale(pygame.image.load("assets/boy_up_2.png"), (GRID_SIZE, GRID_SIZE))],
+    "left": [pygame.transform.scale(pygame.image.load("assets/boy_left_1.png"), (GRID_SIZE, GRID_SIZE)),
+             pygame.transform.scale(pygame.image.load("assets/boy_left_2.png"), (GRID_SIZE, GRID_SIZE))],
+    "right": [pygame.transform.scale(pygame.image.load("assets/boy_right_1.png"), (GRID_SIZE, GRID_SIZE)),
+              pygame.transform.scale(pygame.image.load("assets/boy_right_2.png"), (GRID_SIZE, GRID_SIZE))]
+}
+
+player_direction = "down"
+animation_index = 0
 
 # Лабиринт
 maze = [
@@ -82,7 +96,7 @@ while running:
                 screen.blit(key_img, (tx * GRID_SIZE + 10, ty * GRID_SIZE + 10))
 
         # Игрок
-        screen.blit(player_img, (player_x * GRID_SIZE, player_y * GRID_SIZE))
+        screen.blit(player_sprites[player_direction][animation_index], (player_x * GRID_SIZE, player_y * GRID_SIZE))
 
         # Счёт
         text = font.render(f"Terms: {len(collected_terms)}/{len(term_positions)}", True, WHITE)
@@ -99,19 +113,27 @@ while running:
                     dx, dy = 0, 0
                     if event.key == pygame.K_LEFT:
                         dx = -1
+                        player_direction = "left"
                     elif event.key == pygame.K_RIGHT:
                         dx = 1
+                        player_direction = "right"
                     elif event.key == pygame.K_UP:
                         dy = -1
+                        player_direction = "up"
                     elif event.key == pygame.K_DOWN:
                         dy = 1
+                        player_direction = "down"
+
                     if maze[player_y + dy][player_x + dx] == 0:
                         player_x += dx
                         player_y += dy
+                        animation_index = (animation_index + 1) % 2
+
                     for term, (tx, ty) in term_positions.items():
                         if (tx, ty) == (player_x, player_y) and term not in collected_terms:
                             collected_terms.append(term)
                             showing_definition = f"{term}: {terms[term]}"
+
         # Определение
         if showing_definition:
             pygame.draw.rect(screen, WHITE, (100, 250, 600, 50))
@@ -125,7 +147,7 @@ while running:
     else:
         screen.blit(win_img, (0, 0))
         pygame.display.flip()
-        pygame.time.delay(10000)
+        pygame.time.delay(400)
         running = False
 
     pygame.display.flip()
